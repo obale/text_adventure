@@ -5,8 +5,9 @@
 % This is a small and very stupid adventure game to deepen my prolog
 % knowledge.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-:- dynamic light/1, thing/1, ything/1, at/2, bag/1, way/2, location_print/1,
-           location/2, location_room/1, time/1, describe/1, use/1, look/0.
+:- dynamic light/1, thing/1, ything/1, at/2, bag/1, way/3, location_print/1,
+           location/2, position/1, time/1, describe/1, use/1, look/0,
+           lifeline/1, lifeline_nr/1, alive/0, death/0.
 :- multifile use/1, location/2.
 
 start :-
@@ -22,28 +23,99 @@ start :-
 light(off) :- !.
 location_print(unknown) :- !.
 location(prison, 'Old Prison') :- !.
+alive.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Some general helper functions.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 status :-
         location_print(Location),
-        location_room(Location2),
+        position(Location2),
+        lifeline(Lifeline),
+        lifeline_nr(LifelineNr),
         findall(X, bag(X), Bag),
         findall(X, thing(X), Things),
         findall(X, ything(X), YThings),
-        findall(X, way(X, _), Ways),
+        findall(X, way(_, X, _), Ways),
         print('-------------------------------------------------------------------'), nl,
-        print('LOCATION:               '), print(Location), print(' -> '), print(Location2), nl,
-        print('THINGS in your bag:     '), print(Bag), nl,
-        print('THINGS in this place:   '), print(Things), print(YThings), nl,
-        print('Ways to the next rooms: '), print(Ways), nl,
+        print('| LOCATION     | '), print(Location), print(' ('), print(Location2), print(')'), nl,
+        print('| LIFELINE     | '), print_lifeline(Lifeline), print(' ('), print(LifelineNr), print(')'), nl,
+        print('| BAG          | '), print_list(Bag), nl,
+        print('| ENVIRONMENT  | '), print_list(Things), print_list(YThings), nl,
+        print('| Ways         | '), print_list(Ways), nl,
         print('-------------------------------------------------------------------'), nl.
 
+leave :-
+        halt.
+
+get_place(Place) :-
+        location(Place, _).
+
+get_place_desc(Placedesc) :-
+        location(_, Placedesc).
+
 bag :-
+        alive,
         findall(X, bag(X), Bag),
         print('You have the following stuff in your bag: '), nl,
         print(Bag).
+
+lifeline(['+', '+', '+', '+', '+', '+', '+', '+', '+', '+',
+          '+', '+', '+', '+', '+', '+', '+', '+', '+', '+']) :- !.
+
+lifeline_nr(20).
+
+inc_lifeline :-
+        lifeline_nr(Z),
+        W is Z + 1,
+        retract(lifeline_nr(Z)),
+        asserta(lifeline_nr(W)).
+
+dec_lifeline :-
+        lifeline_nr(Z),
+        W is Z - 1,
+        retract(lifeline_nr(Z)),
+        asserta(lifeline_nr(W)).
+
+print_list([]) :- !.
+print_list([X|List]) :-
+        print(X), print(', '),
+        print_list(List).
+
+print_lifeline([]) :- !.
+print_lifeline([X|List]) :-
+        print(X),
+        print_lifeline(List).
+
+hurt(0) :- !.
+
+hurt(_) :-
+        lifeline([]), !,
+        retract(alive),
+        assert(death),
+        print('You are death').
+
+hurt(X) :-
+        lifeline([_|Lifeline]),
+        retract(lifeline([_|Lifeline]) :- !),
+        asserta(lifeline(Lifeline) :- !),
+        dec_lifeline,
+        Y is X - 1,
+        hurt(Y).
+
+heal :-
+        alive,
+        bag(package(first-aid-kit, 0)), !,
+        print('Your first-aid-kit is finished.'), nl.
+
+heal :-
+        alive,
+        retract(lifeline(Lifeline) :- !),
+        asserta(lifeline(['+'|Lifeline]) :- !),
+        retract(bag(package(first-aid-kit, X))),
+        inc_lifeline,
+        Y is X - 1,
+        asserta(bag(package(first-aid-kit, Y))).
 
 help :-
         print('************************************************************'), nl,
@@ -52,6 +124,10 @@ help :-
         print('take(something).       -> Add \'something\' to your bag'), nl,
         print('drop(something).       -> Drop \'something\' from your bag'), nl,
         print('look.                  -> Look around you.'), nl,
+        print('describe.              -> Describe the current place.'), nl,
+        print('bag.                   -> List what you have in our bag.'), nl,
+        print('n., s., w., e.         -> Go to north, south, west or east.'), nl,
+        print('leave.                 -> Quit the game.'), nl,
         print('************************************************************'), nl.
 
 create_file(File) :-
@@ -66,7 +142,10 @@ remove_things :-
 
 clean :-
         retractall(location(_, _)),
+        retractall(position(_)),
+        retractall(describe(_)),
         retractall(look),
+        retractall(use(_)),
         remove_things.
 
 init_world :-
@@ -83,6 +162,7 @@ init_world :-
         print('\'.').
 
 describe :-
+        alive,
         location(X, _),
         status,
         describe(X).
@@ -105,40 +185,40 @@ switch_light :-
         asserta(light(off) :- !).
 
 n :-
-        light,
+        alive, light,
         way(Oldlocation, north, Newlocation), !,
-        retract(location_room(Oldlocation) :- !),
-        asserta(location_room(Newlocation) :- !),
+        retract(position(Oldlocation) :- !),
+        asserta(position(Newlocation) :- !),
         print('You are gone to north.'), nl, !,
         look.
 
 n :-    todark.
 
 s :-
-        light,
+        alive, light,
         way(Oldlocation, south, Newlocation), !,
-        retract(location_room(Oldlocation) :- !),
-        asserta(location_room(Newlocation) :- !),
+        retract(position(Oldlocation) :- !),
+        asserta(position(Newlocation) :- !),
         print('You are gone to south.'), nl, !,
         look.
 
 s :-    todark.
 
 w :-
-        light,
+        alive, light,
         way(Oldlocation, west, Newlocation), !,
-        retract(location_room(Oldlocation) :- !),
-        asserta(location_room(Newlocation) :- !),
+        retract(position(Oldlocation) :- !),
+        asserta(position(Newlocation) :- !),
         print('You are gone to west.'), nl, !,
         look.
 
 w :-    todark.
 
 e :-
-        light,
+        alive, light,
         way(Oldlocation, east, Newlocation), !,
-        retract(location_room(Oldlocation) :- !),
-        asserta(location_room(Newlocation) :- !),
+        retract(position(Oldlocation) :- !),
+        asserta(position(Newlocation) :- !),
         look,
         print('You are gone to east.'), nl, !.
 
@@ -149,11 +229,9 @@ e :-    todark.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 bag(knife).
 bag(lighter).
+bag(package(first-aid-kit, 6)).
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% This are possible only test data. Copy this part then to the use(light)
-% statement.
-%
 % Here are the actions which you can take.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 update_location(Newlocation) :-
@@ -162,6 +240,7 @@ update_location(Newlocation) :-
         assert(location_print(X) :- !).
 
 inspect(X) :-
+        alive,
         findall(Y, at(Y, X), Z),
         add_things(Z),
         print('The following things are on the '),
@@ -173,6 +252,7 @@ add_things([X|Xs]) :-
         add_things(Xs).
 
 take(X) :-
+        alive,
         at(X, Y), thing(X), !,
         retract(thing(X)),
         asserta(bag(X)),
@@ -181,6 +261,7 @@ take(X) :-
         print(' to your bag: '), print(X), nl.
 
 take(X) :-
+        alive,
         thing(X), tangible(X), !,
         retract(thing(X)),
         asserta(bag(X)),
@@ -188,6 +269,7 @@ take(X) :-
         print(X), nl.
 
 take(X) :-
+        alive,
         ything(X), !,
         retract(ything(X)),
         asserta(bag(X)),
@@ -195,20 +277,24 @@ take(X) :-
         print(X), nl.
 
 take(X) :-
+        alive,
         print('You can\'t take the following thing: '),
         print(X), nl, !, fail.
 
 drop(X) :-
+        alive,
         bag(X), !,
         retract(bag(X)),
         asserta(ything(X)),
         print('You have droped the following thing to the environment: '), print(X).
 
 drop(X) :-
+        alive,
         print('The following don\'t exists in our bag: '),
         print(X), nl, !, fail.
 
 open_door(X) :-
+        alive,
         door(X), !,
         print('You have opened the following door: '),
         print(X), nl.

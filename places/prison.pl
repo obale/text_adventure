@@ -9,7 +9,7 @@
 % ---------
 %
 % [x] location/2      (@1: place; @2: 'Place Description')
-% [x] location_room/1 (@1: place in a room)
+% [x] position/1      (@1: place in a room)
 % [x] describe/1      (@1: place)
 % [x] look/0 
 % [x] use/1           (@1: object)
@@ -28,7 +28,7 @@ describe(prison) :-
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % The ways out of here.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-location_room(startpoint) :- !.
+position(startpoint) :- !.
 
 way(startpoint, north, irondoor) :- !.
 way(irondoor, south, startpoint) :- !.
@@ -38,7 +38,7 @@ way(_, _, _) :- print('You can\'t go this direction'), !, fail.
 % Change here what you see in your enviornment.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 look :-
-        light(on), location_room(startpoint), !,
+        light(on), position(startpoint), !,
         remove_things,
         asserta(at(book, table)),
         asserta(at(pen, table)),
@@ -54,7 +54,7 @@ look :-
         print(Things), print(YThings), nl.
 
 look :-
-        light(on), location_room(irondoor), !,
+        light(on), position(irondoor), !,
         remove_things.
 
 look :-
@@ -87,19 +87,17 @@ use(lighter) :-
 
 use(lighter) :-
         light,
-        switch_light,
-        remove_things,
-        print('The torchs are now blown out.'), !, nl.
-
-use(lighter) :-
-        print('There are no torch in the near environment!'), !, nl.
+        print('It\s not dark and there is no other use of the lighter.'), !, nl.
 
 use(knife) :-
         print('You don\'t need your knife at the moment.'), !, nl.
 
 use(torch) :-
         light,
-        print('You stupid guy, you have scorched your fingers!'), !, nl.
+        switch_light,
+        remove_things,
+        hurt(1),
+        print('You stupid guy, you have scorched your fingers, and now the torches are blown out!'), !, nl.
 
 use(X) :-
         print('You can\'t use the following thing: '),

@@ -1,0 +1,14 @@
+TODO list
+=========
+
+Here you find the known bugs or stuff that is not implemented at the moment.
+All marked bugs ([x]) are fixed or implemented, the unmarked bugs ([ ]) are to
+do.
+
+[ ] If you drop something and change the location and then return to the
+    point the dropped thing is gone. 
+
+[ ] The change of the location (not the position) is not implemented. Each
+    location should be receive a own .pl file and have the same style.
+
+[X] Implement a lifeline to indicate how healthy the character is.
