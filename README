@@ -1,0 +1,39 @@
+PROLOG ADVENTURE GAME
+=====================
+
+A simple and modular text adventure game in PROLOG.
+
+game.pl         -> The main file, which handles the whole game. Implements
+                   general "functions" and loads/deletes the single places.
+
+places/*        -> Each place should have 
+
+Description of the places
+=========================
+
+All places you can find in the subdirectory "places/" with the suffix .pl.
+The ASCII picture are all drawn in the following direction:
+
+                   N
+                W<-|->E
+                   S
+
+prison
+------
+
+The start point of the game and the first place which was written. 
+
+------___--------------
+|      2              |
+|                     |
+|6           3 (5)   6|
+|            4        |
+|      1              |
+-----------------------
+
+ 1 ... start point.
+ 2 ... iron door
+ 3 ... table
+ 4 ... chair
+ 5 ... pen, book, first aid package
+ 6 ... torch
