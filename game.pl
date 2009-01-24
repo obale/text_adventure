@@ -39,6 +39,7 @@ help :-
         print('take                   -> Take one thing at the time, if possible.'), nl,
         print('drop(something).       -> Drop \'something\' from your bag'), nl,
         print('look.                  -> Look around you.'), nl,
+        print('heal.                  -> Use a medical kit to improve your healthy.'), nl,
         print('describe.              -> Describe the current place.'), nl,
         print('bag.                   -> List what you have in our bag.'), nl,
         print('n., s., w., e.         -> Go to north, south, west or east.'), nl,
@@ -127,7 +128,7 @@ heal :-
         asserta(bag(package(first-aid-kit, Y))).
 
 heal :-
-        print('You can\'t heal you, maybe you have not first-aid package or you are death.'), nl, !.
+        print('You can\'t heal you, maybe you have no first-aid package or you are death.'), nl, !.
 
 print_list([]) :- !.
 print_list([X|List]) :-
@@ -160,6 +161,45 @@ clean :-
         abolish(use/1),
         abolish(way/3),
         remove_things.
+
+save_world :-
+        location(X, _),
+        concat('saved/', X, Tmpfile),
+        concat(Tmpfile, '.pl', File),
+        telling(Old),
+        tell(File),
+        listing(location/2),
+        listing(location_print/1),
+        listing(position/1),
+        listing(describe/1),
+        listing(look/0),
+        listing(close_way/1),
+        listing(open_way/1),
+        listing(light/1),
+        listing(use/1),
+        listing(way/3),
+        listing(bag/1),
+        listing(thing/1),
+        listing(ything/1),
+        listing(at/2),
+        listing(tangible/1),
+        listing(lifeline/1),
+        listing(lifeline_nr/1),
+        told,
+        tell(Old).
+
+load_world :-
+        location(X, _),
+        clean,
+        abolish(bag/1),
+        abolish(location_print/1),
+        abolish(ything/1),
+        abolish(tangible/1),
+        abolish(lifeline/1),
+        abolish(lifeline_nr/1),
+        concat('saved/', X, Tmpfile),
+        concat(Tmpfile, '.pl', File),
+        consult(File).
 
 init_world :-
         create_file(File),
@@ -200,40 +240,40 @@ switch_light :-
 n :-
         alive, light,
         position(Oldlocation),
-        way(Oldlocation, north, Newlocation), open_way(Oldlocation), !,
+        way(Oldlocation, north, Newlocation), open_way(Newlocation), !,
         retract(position(Oldlocation) :- !),
         asserta(position(Newlocation) :- !),
-        print('You are gone to north.'), nl, !,
-        look.
+        look,
+        print('You are gone to north.'), nl, !.
 
 n :-    todark.
 
 s :-
         alive, light,
         position(Oldlocation),
-        way(Oldlocation, south, Newlocation), open_way(Oldlocation), !,
+        way(Oldlocation, south, Newlocation), open_way(Newlocation), !,
         retract(position(Oldlocation) :- !),
         asserta(position(Newlocation) :- !),
-        print('You are gone to south.'), nl, !,
-        look.
+        look,
+        print('You are gone to south.'), nl, !.
 
 s :-    todark.
 
 w :-
         alive, light,
         position(Oldlocation),
-        way(Oldlocation, west, Newlocation), open_way(Oldlocation), !,
+        way(Oldlocation, west, Newlocation), open_way(Newlocation), !,
         retract(position(Oldlocation) :- !),
         asserta(position(Newlocation) :- !),
-        print('You are gone to west.'), nl, !,
-        look.
+        look,
+        print('You are gone to west.'), nl, !.
 
 w :-    todark.
 
 e :-
         alive, light,
         position(Oldlocation),
-        way(Oldlocation, east, Newlocation), open_way(Oldlocation), !,
+        way(Oldlocation, east, Newlocation), open_way(Newlocation), !,
         retract(position(Oldlocation) :- !),
         asserta(position(Newlocation) :- !),
         look,
@@ -322,9 +362,8 @@ drop(X) :-
         print('The following don\'t exists in our bag: '),
         print(X), nl, !, fail.
 
-open_way :-
+openway(X) :-
         alive,
-        position(X),
         close_way(X), !,
         retract(close_way(X)),
         asserta(open_way(X)),

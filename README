@@ -8,6 +8,8 @@ game.pl         -> The main file, which handles the whole game. Implements
 
 places/*        -> Each place should have 
 
+saved/*         -> Here you find the temporary place statuses during a game.
+
 Description of the places
 =========================
 

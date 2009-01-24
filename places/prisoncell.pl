@@ -46,7 +46,7 @@ way(startpoint, north, irondoor) :- !.
 way(irondoor, south, startpoint) :- !.
 /*
 way(irondoor, north, startpoint_tract) :-
-        open_way(irondoor), !,
+        open_way(startpoint_tract), !, save_world,
         retract(location(_, _) :- !),
         asserta(location(prisontract, 'The Prison Tract') :- !),
         init_world.
@@ -58,7 +58,8 @@ way(_, _, _) :- print('You can\'t go this direction. Please look if there is a d
 % Some states of different things.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 light(off) :- !.
-close_way(irondoor).
+close_way(startpoint_tract).
+open_way(irondoor).
 open_way(startpoint).
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -118,18 +119,18 @@ use(lighter) :-
         print('It\s not dark and there is no other use of the lighter.'), !, nl.
 
 use(knife) :-
-        position(irondoor), close_way(irondoor),
-        rand_true(4),
-        open_way, !.
+        position(irondoor), close_way(startpoint_tract),
+        rand_true(2),
+        openway(startpoint_tract), !.
 
 use(knife) :-
-        position(irondoor), close_way(irondoor),
+        position(irondoor), close_way(startpoint_tract),
         print('Trying to open the door with my knife...'), nl,
         sleep(1),
         print('Seams to be hard work to open a iron door with my knife. But lets try another time.'), !, nl.
 
 use(knife) :-
-        position(irondoor), open_way(irondoor), !,
+        position(irondoor), open_way(startpoint_tract), !,
         print('The door is open, you don\'t need your tool.'), !, fail, nl.
 
 use(knife) :-

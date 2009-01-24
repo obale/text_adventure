@@ -36,12 +36,10 @@ describe(prisontract) :-
 position(startpoint_tract) :- !.
 
 way(startpoint_tract, south, irondoor) :-
-        open_way(irondoor), !,
+        open_way(irondoor), save_world, !,
         retract(location(_, _) :- !),
         asserta(location(prisoncell, 'The Prison Cell') :- !),
-        retract(position(_) :- !),
-        asserta(position(irondoor) :- !),
-        init_world.
+        load_world.
 
 open_way(irondoor).
 light(on).
