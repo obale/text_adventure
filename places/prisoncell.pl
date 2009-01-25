@@ -1,21 +1,34 @@
-%
-% Adventure Game
-% (C) 2008 by Alex Oberhauser <OberhauserAlex@networld.to>
-%
-% This is a small and very stupid adventure game to deepen my prolog
-% knowledge.
-%
-% CHECKLIST
-% ---------
-%
-% [x] location/2      (@1: place; @2: 'Place Description')
-% [x] position/1      (@1: place in a room)
-% [x] describe/1      (@1: place)
-% [x] look/0 
-% [x] use/1           (@1: object)
-% [x] way/3           (@1: source; @2: direction; @2: destination)
-% [X] close_way/1     (@1: the door which is open or closed)
-%     open_way/1
+/*************************************************************************
+ * Adventure Game - prisoncell.pl 
+ *
+ * (C) 2008
+ * Written by Alex Oberhauser <oberhauseralex@networld.to>
+ * All Rights Reserved
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, version 2 of the License.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this software.  If not, see <http://www.gnu.org/licenses/>
+ **************************************************************************
+ * CHECKLIST
+ * ---------
+ *
+ * [x] location/2      (@1: place; @2: 'Place Description')
+ * [x] position/1      (@1: place in a room)
+ * [x] describe/1      (@1: place)
+ * [x] look/0
+ * [x] use/1           (@1: object)
+ * [x] way/3           (@1: source; @2: direction; @2: destination)
+ * [X] close_way/1     (@1: the door which is open or closed)
+ *     open_way/1
+ *************************************************************************/
 :- dynamic thing/1.
 :- dynamic at/2.
 :- dynamic location/2.
@@ -37,34 +50,32 @@ describe(prisoncell) :-
         light,
         print('Seams that you are in a very old prison cell.'), !, nl.
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% The ways out of here.
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+/*************************************************************************
+ * The ways out of here.
+ *************************************************************************/
 position(startpoint) :- !.
 
 way(startpoint, north, irondoor) :- !.
 way(irondoor, south, startpoint) :- !.
-/*
 way(irondoor, north, startpoint_tract) :-
         open_way(startpoint_tract), !, save_world,
         retract(location(_, _) :- !),
         asserta(location(prisontract, 'The Prison Tract') :- !),
         init_world.
-*/
 
 way(_, _, _) :- print('You can\'t go this direction. Please look if there is a door or other entry which you can open.'), !, fail.
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% Some states of different things.
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+/*************************************************************************
+ * Some states of different things.
+ *************************************************************************/
 light(off) :- !.
 close_way(startpoint_tract).
 open_way(irondoor).
 open_way(startpoint).
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% Change here what you see in your enviornment.
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+/*************************************************************************
+ * Change here what you see in your enviornment.
+ *************************************************************************/
 look :-
         light, position(startpoint), !,
         remove_things,
@@ -77,7 +88,7 @@ look :-
         asserta(tangible(pen)),
         asserta(tangible(package(first-aid-kit, 20))),
         findall(X, thing(X), Things),
-        findall(X, ything(X), YThings),
+        findall(X, ything(X, startpoint), YThings),
         print('You see the following stuff: '),
         print_list(Things), print_list(YThings), nl.
 
@@ -95,11 +106,12 @@ look :-
         print('It\'s to dark to see something.'),
         !, fail.
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% Use function for the single things.
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+/*************************************************************************
+ * Use function for the single things.
+ *************************************************************************/
 use(lighter) :-
         dark,
+        bag(lighter),
         thing(torch),
         print('You have seen two torchs and light it.'), nl,
         switch_light,
@@ -110,30 +122,36 @@ use(lighter) :-
 
 use(lighter) :-
         dark,
+        bag(lighter),
         asserta(thing(torch)),
         print('In the small shine of your lighter you see torches.'), nl,
         print('To light it use the lighter a second time.'), nl, !.
 
 use(lighter) :-
         light,
+        bag(lighter),
         print('It\s not dark and there is no other use of the lighter.'), !, nl.
 
 use(knife) :-
+        bag(knife),
         position(irondoor), close_way(startpoint_tract),
         rand_true(2),
         openway(startpoint_tract), !.
 
 use(knife) :-
+        bag(knife),
         position(irondoor), close_way(startpoint_tract),
         print('Trying to open the door with my knife...'), nl,
         sleep(1),
         print('Seams to be hard work to open a iron door with my knife. But lets try another time.'), !, nl.
 
 use(knife) :-
+        bag(knife),
         position(irondoor), open_way(startpoint_tract), !,
         print('The door is open, you don\'t need your tool.'), !, fail, nl.
 
 use(knife) :-
+        bag(knife),
         print('You don\'t need your knife at the moment.'), !, fail, nl.
 
 use(torch) :-

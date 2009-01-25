@@ -1,16 +1,28 @@
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% Adventure Game
-% (C) 2008 by Alex Oberhauser <OberhauserAlex@networld.to>
-%
-% This is a small and very stupid adventure game to deepen my prolog
-% knowledge.
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+/*************************************************************************
+ * Adventure Game - game.pl 
+ *
+ * (C) 2008
+ * Written by Alex Oberhauser <oberhauseralex@networld.to>
+ * All Rights Reserved
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, version 2 of the License.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this software.  If not, see <http://www.gnu.org/licenses/>
+ *************************************************************************/
 :- use_module(library(lists)).
 :- dynamic lifeline/1.
 :- dynamic lifeline_nr/1.
 :- dynamic alive/0.
 :- dynamic death/0.
-:- dynamic ything/1.
+:- dynamic ything/2.
 :- dynamic bag/1.
 :- dynamic taken/1.
 :- dynamic location_print/1.
@@ -22,16 +34,16 @@ start :-
         nl,
         status.
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% Here are the settings which variate from time to time.
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+/*************************************************************************
+ * Here are the settings which variate from time to time.
+ *************************************************************************/
 location_print(unknown) :- !.
 location(prisoncell, 'Old Prison Cell') :- !.
 alive.
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% Some general helper functions.
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+/*************************************************************************
+ * Some general helper functions.
+ *************************************************************************/
 help :-
         print('************************************************************'), nl,
         print('use(something).        -> Use the object \'something\''), nl,
@@ -52,12 +64,15 @@ status :-
         position(Location2),
         lifeline(Lifeline),
         lifeline_nr(LifelineNr),
+        manna(Manna),
+        manna_nr(MannaNr),
         findall(X, bag(X), Bag),
         findall(X, thing(X), Things),
-        findall(X, ything(X), YThings),
+        findall(X, ything(X, Location2), YThings),
         print('----------------'), nl,
         print('| LOCATION     | '), print(Location), print(' ('), print(Location2), print(')'), nl,
         print('| LIFELINE     | '), print_lifeline(Lifeline), print(' ('), print(LifelineNr), print(')'), nl,
+        print('| MANNA        | '), print_lifeline(Manna), print(' ('), print(MannaNr), print(')'), nl,
         print('| BAG          | '), print_list(Bag), nl,
         print('| ENVIRONMENT  | '), print_list(Things), print_list(YThings), nl,
         print('----------------'), nl.
@@ -66,7 +81,7 @@ bag :-
         alive,
         findall(X, bag(X), Bag),
         print('You have the following stuff in your bag: '), nl,
-        print(Bag).
+        print_list(Bag).
 
 leave :-
         halt.
@@ -85,6 +100,11 @@ lifeline(['+', '+', '+', '+', '+', '+', '+', '+', '+', '+',
           '+', '+', '+', '+', '+', '+', '+', '+', '+', '+']) :- !.
 
 lifeline_nr(20).
+
+manna(['+', '+', '+', '+', '+', '+', '+', '+', '+', '+',
+       '+', '+', '+', '+', '+', '+', '+', '+', '+', '+']) :- !.
+
+manna_nr(20).
 
 inc_lifeline :-
         lifeline_nr(Z),
@@ -193,7 +213,7 @@ save_world :-
         listing(way/3),
         listing(bag/1),
         listing(thing/1),
-        listing(ything/1),
+        listing(ything/2),
         listing(at/2),
         listing(tangible/1),
         listing(lifeline/1),
@@ -207,14 +227,16 @@ load_world :-
         clean,
         abolish(bag/1),
         abolish(location_print/1),
-        abolish(ything/1),
+        abolish(ything/2),
         abolish(tangible/1),
         abolish(lifeline/1),
         abolish(lifeline_nr/1),
         abolish(taken/1),
         concat('saved/', X, Tmpfile),
         concat(Tmpfile, '.pl', File),
-        consult(File).
+        consult(File),
+        update_location(Y),
+        describe(Y).
 
 init_world :-
         create_file(File),
@@ -296,15 +318,15 @@ e :-
 
 e :-    todark.
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% Stuff which you have in your bag.
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+/*************************************************************************
+ * Stuff which you have in your bag.
+ *************************************************************************/
 bag(knife).
 bag(lighter).
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% Here are the actions which you can take.
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+/*************************************************************************
+ * Here are the actions which you can take.
+ *************************************************************************/
 update_location(Newlocation) :-
         retract(location_print(_) :- !),
         location(Newlocation, X),
@@ -362,8 +384,9 @@ take(X) :-
 
 take(X) :-
         alive,
-        ything(X), !,
-        retract(ything(X)),
+        position(Y),
+        ything(X, Y), !,
+        retract(ything(X, Y)),
         asserta(bag(X)),
         asserta(taken(X)),
         print('You have added the following thing to your bag: '),
@@ -376,8 +399,9 @@ take(_) :-
 drop(X) :-
         alive,
         bag(X), !,
+        position(Y),
         retract(bag(X)),
-        asserta(ything(X)),
+        asserta(ything(X, Y)),
         print('You have droped the following thing to the environment: '), print(X).
 
 drop(X) :-

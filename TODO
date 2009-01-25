@@ -10,10 +10,10 @@ do.
 
 [X] Implement a lifeline to indicate how healthy the character is.
 
-[ ] Implement a save system (in a new .pl file for each place), so you can go
+[x] Implement a save system (in a new .pl file for each place), so you can go
     back to the place and all things are equal than before you have left.
 
-        [ ] If you drop something and change the location and then return to the
+        [x] If you drop something and change the location and then return to the
             point the dropped thing is gone. 
 
 [x] If you go back and your inspect some thing you see all stuff also

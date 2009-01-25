@@ -8,7 +8,7 @@ location_print('Old Prison Cell') :- !.
 
 :- dynamic position/1.
 
-position(startpoint) :- !.
+position(irondoor) :- !.
 
 :- dynamic describe/1.
 
@@ -36,7 +36,7 @@ look :-
 	asserta(tangible(pen)),
 	asserta(tangible(package(first-aid-kit, 20))),
 	findall(A, thing(A), B),
-	findall(A, ything(A), C),
+	findall(A, ything(A, startpoint), C),
 	print('You see the following stuff: '),
 	print_list(B),
 	print_list(C),
@@ -56,10 +56,10 @@ look :-
 
 :- dynamic close_way/1.
 
-close_way(startpoint_tract).
 
 :- dynamic open_way/1.
 
+open_way(startpoint_tract).
 open_way(irondoor).
 open_way(startpoint).
 
@@ -71,6 +71,7 @@ light(on) :- !.
 
 use(lighter) :-
 	dark,
+	bag(lighter),
 	thing(torch),
 	print('You have seen two torchs and light it.'),
 	nl,
@@ -81,6 +82,7 @@ use(lighter) :-
 	status, !.
 use(lighter) :-
 	dark,
+	bag(lighter),
 	asserta(thing(torch)),
 	print('In the small shine of your lighter you see torches.'),
 	nl,
@@ -88,14 +90,17 @@ use(lighter) :-
 	nl, !.
 use(lighter) :-
 	light,
+	bag(lighter),
 	print('Its not dark and there is no other use of the lighter.'), !,
 	nl.
 use(knife) :-
+	bag(knife),
 	position(irondoor),
 	close_way(startpoint_tract),
 	rand_true(2),
 	openway(startpoint_tract), !.
 use(knife) :-
+	bag(knife),
 	position(irondoor),
 	close_way(startpoint_tract),
 	print('Trying to open the door with my knife...'),
@@ -104,12 +109,14 @@ use(knife) :-
 	print('Seams to be hard work to open a iron door with my knife. But lets try another time.'), !,
 	nl.
 use(knife) :-
+	bag(knife),
 	position(irondoor),
 	open_way(startpoint_tract), !,
 	print('The door is open, you don\'t need your tool.'), !,
 	fail,
 	nl.
 use(knife) :-
+	bag(knife),
 	print('You don\'t need your knife at the moment.'), !,
 	fail,
 	nl.
@@ -127,35 +134,32 @@ use(A) :-
 
 way(startpoint, north, irondoor) :- !.
 way(irondoor, south, startpoint) :- !.
+way(irondoor, north, startpoint_tract) :-
+	open_way(startpoint_tract), !,
+	save_world,
+	retract((location(_, _):-!)),
+	asserta((location(prisontract, 'The Prison Tract'):-!)),
+	init_world.
 way(_, _, _) :-
 	print('You can\'t go this direction. Please look if there is a door or other entry which you can open.'), !,
 	fail.
 
 :- dynamic bag/1.
 
-bag(knife).
 bag(lighter).
 
 :- dynamic thing/1.
 
-thing(torch).
-thing(chair).
-thing(table).
 
-:- dynamic ything/1.
+:- dynamic ything/2.
 
+ything(knife, startpoint).
 
 :- dynamic at/2.
 
-at(package(first-aid-kit, 20), table).
-at(pen, table).
-at(book, table).
 
 :- dynamic tangible/1.
 
-tangible(package(first-aid-kit, 20)).
-tangible(pen).
-tangible(book).
 
 :- dynamic lifeline/1.
 
@@ -164,4 +168,8 @@ lifeline([+, +, +, +, +, +, +, +, +, +, +, +, +, +, +, +, +, +, +, +]) :- !.
 :- dynamic lifeline_nr/1.
 
 lifeline_nr(20).
+
+:- dynamic taken/1.
+
+taken(knife).
 

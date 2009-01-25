@@ -14,12 +14,16 @@ position(startpoint_tract) :- !.
 
 describe(prisontract) :-
 	light,
+	position(startpoint_tract),
 	print('You have left the prison cell. Now you are in the prison tract.'),
 	nl,
 	print('The sun is shining trough a little whole in the wall.').
 
 :- dynamic look/0.
 
+look :-
+	asserta(thing(sword)),
+	asserta(tangible(sword)).
 
 :- dynamic close_way/1.
 
@@ -34,6 +38,9 @@ light(on).
 
 :- dynamic use/1.
 
+use(sword) :-
+	print('You can\'t use this sword at the moment.'),
+	nl, !.
 
 way(startpoint_tract, south, irondoor) :-
 	open_way(irondoor),
@@ -44,15 +51,14 @@ way(startpoint_tract, south, irondoor) :-
 
 :- dynamic bag/1.
 
-bag(package(first-aid-kit, 20)).
-bag(knife).
 bag(lighter).
 
 :- dynamic thing/1.
 
 
-:- dynamic ything/1.
+:- dynamic ything/2.
 
+ything(knife, startpoint).
 
 :- dynamic at/2.
 
@@ -67,4 +73,8 @@ lifeline([+, +, +, +, +, +, +, +, +, +, +, +, +, +, +, +, +, +, +, +]) :- !.
 :- dynamic lifeline_nr/1.
 
 lifeline_nr(20).
+
+:- dynamic taken/1.
+
+taken(knife).
 
