@@ -12,6 +12,7 @@
 :- dynamic death/0.
 :- dynamic ything/1.
 :- dynamic bag/1.
+:- dynamic taken/1.
 :- dynamic location_print/1.
 
 start :-
@@ -61,6 +62,12 @@ status :-
         print('| ENVIRONMENT  | '), print_list(Things), print_list(YThings), nl,
         print('----------------'), nl.
 
+bag :-
+        alive,
+        findall(X, bag(X), Bag),
+        print('You have the following stuff in your bag: '), nl,
+        print(Bag).
+
 leave :-
         halt.
 
@@ -73,12 +80,6 @@ get_place_desc(Placedesc) :-
 rand_true(X) :-
         Y is random(X),
         1 = Y.
-
-bag :-
-        alive,
-        findall(X, bag(X), Bag),
-        print('You have the following stuff in your bag: '), nl,
-        print(Bag).
 
 lifeline(['+', '+', '+', '+', '+', '+', '+', '+', '+', '+',
           '+', '+', '+', '+', '+', '+', '+', '+', '+', '+']) :- !.
@@ -131,9 +132,21 @@ heal :-
         print('You can\'t heal you, maybe you have no first-aid package or you are death.'), nl, !.
 
 print_list([]) :- !.
+
 print_list([X|List]) :-
         print(X), print(', '),
         print_list(List).
+
+print_list_inspect([]) :- !.
+
+print_list_inspect([X|List]) :-
+        taken(X),
+        print_list_inspect(List), !.
+
+print_list_inspect([X|List]) :-
+        print(X), print(', '),
+        print_list(List), !.
+
 
 print_lifeline([]) :- !.
 print_lifeline([X|List]) :-
@@ -141,7 +154,7 @@ print_lifeline([X|List]) :-
         print_lifeline(List).
 
 create_file(File) :-
-        location(X, _),
+        get_place(X),
         concat('places/', X, Tmpfile),
         concat(Tmpfile, '.pl', File).
 
@@ -163,7 +176,7 @@ clean :-
         remove_things.
 
 save_world :-
-        location(X, _),
+        get_place(X),
         concat('saved/', X, Tmpfile),
         concat(Tmpfile, '.pl', File),
         telling(Old),
@@ -185,11 +198,12 @@ save_world :-
         listing(tangible/1),
         listing(lifeline/1),
         listing(lifeline_nr/1),
+        listing(taken/1),
         told,
         tell(Old).
 
 load_world :-
-        location(X, _),
+        get_place(X),
         clean,
         abolish(bag/1),
         abolish(location_print/1),
@@ -197,6 +211,7 @@ load_world :-
         abolish(tangible/1),
         abolish(lifeline/1),
         abolish(lifeline_nr/1),
+        abolish(taken/1),
         concat('saved/', X, Tmpfile),
         concat(Tmpfile, '.pl', File),
         consult(File).
@@ -303,15 +318,20 @@ inspect(X) :-
 inspect(X) :-
         alive,
         findall(Y, at(Y, X), Z),
-        add_things(Z),
-        print('The following things are on the '),
-        print(X), print(': '), print(Z).
+        print('The following things are on/in the '),
+        print(X), print(': '), print_list_inspect(Z),
+        add_things(Z).
 
 add_things([]) :- !.
 
-add_things([X|_]) :-
+add_things([X|Xs]) :-
         findall(Z, thing(Z), Zs),
-        member(X, Zs), !.
+        member(X, Zs),
+        add_things(Xs), !.
+
+add_things([X|Xs]) :-
+        taken(X), !,
+        add_things(Xs).
 
 add_things([X|Xs]) :-
         asserta(thing(X)),
@@ -326,6 +346,7 @@ take(X) :-
         retract(thing(X)),
         retract(at(_, _)),
         asserta(bag(X)),
+        asserta(taken(X)),
         print('You have added the following thing from '),
         print(Y),
         print(' to your bag: '), print(X), !, nl.
@@ -335,6 +356,7 @@ take(X) :-
         thing(X), tangible(X), !,
         retract(thing(X)),
         asserta(bag(X)),
+        asserta(taken(X)),
         print('You have added the following thing to your bag: '),
         print(X), !, nl.
 
@@ -343,6 +365,7 @@ take(X) :-
         ything(X), !,
         retract(ything(X)),
         asserta(bag(X)),
+        asserta(taken(X)),
         print('You have added the following thing to your bag: '),
         print(X), !, nl.
 

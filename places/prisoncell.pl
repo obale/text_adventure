@@ -146,3 +146,4 @@ use(torch) :-
 use(X) :-
         print('You can\'t use the following thing: '),
         print(X), !, fail.
+

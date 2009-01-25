@@ -8,7 +8,7 @@ location_print('Old Prison Cell') :- !.
 
 :- dynamic position/1.
 
-position(irondoor) :- !.
+position(startpoint) :- !.
 
 :- dynamic describe/1.
 
@@ -56,10 +56,10 @@ look :-
 
 :- dynamic close_way/1.
 
+close_way(startpoint_tract).
 
 :- dynamic open_way/1.
 
-open_way(startpoint_tract).
 open_way(irondoor).
 open_way(startpoint).
 
@@ -127,33 +127,35 @@ use(A) :-
 
 way(startpoint, north, irondoor) :- !.
 way(irondoor, south, startpoint) :- !.
-way(irondoor, north, startpoint_tract) :-
-	open_way(startpoint_tract), !,
-	save_world,
-	retract((location(_, _):-!)),
-	asserta((location(prisontract, 'The Prison Tract'):-!)),
-	init_world.
 way(_, _, _) :-
 	print('You can\'t go this direction. Please look if there is a door or other entry which you can open.'), !,
 	fail.
 
 :- dynamic bag/1.
 
-bag(package(first-aid-kit, 20)).
 bag(knife).
 bag(lighter).
 
 :- dynamic thing/1.
 
+thing(torch).
+thing(chair).
+thing(table).
 
 :- dynamic ything/1.
 
 
 :- dynamic at/2.
 
+at(package(first-aid-kit, 20), table).
+at(pen, table).
+at(book, table).
 
 :- dynamic tangible/1.
 
+tangible(package(first-aid-kit, 20)).
+tangible(pen).
+tangible(book).
 
 :- dynamic lifeline/1.
 
