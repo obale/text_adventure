@@ -1,3 +1,6 @@
+:- dynamic taken/1.
+
+
 :- dynamic location/2.
 
 location(prisoncell, 'Old Prison Cell') :- !.
@@ -144,32 +147,15 @@ way(_, _, _) :-
 	print('You can\'t go this direction. Please look if there is a door or other entry which you can open.'), !,
 	fail.
 
-:- dynamic bag/1.
-
-bag(lighter).
-
 :- dynamic thing/1.
 
 
 :- dynamic ything/2.
 
-ything(knife, startpoint).
 
 :- dynamic at/2.
 
 
 :- dynamic tangible/1.
 
-
-:- dynamic lifeline/1.
-
-lifeline([+, +, +, +, +, +, +, +, +, +, +, +, +, +, +, +, +, +, +, +]) :- !.
-
-:- dynamic lifeline_nr/1.
-
-lifeline_nr(20).
-
-:- dynamic taken/1.
-
-taken(knife).
 

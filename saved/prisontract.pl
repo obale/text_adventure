@@ -1,3 +1,6 @@
+:- dynamic taken/1.
+
+
 :- dynamic location/2.
 
 location(prisontract, 'Old Prison Tract') :- !.
@@ -43,38 +46,21 @@ use(sword) :-
 	nl, !.
 
 way(startpoint_tract, south, irondoor) :-
-	open_way(irondoor),
-	save_world, !,
+	open_way(irondoor), !,
+	save_world,
 	retract((location(_, _):-!)),
 	asserta((location(prisoncell, 'The Prison Cell'):-!)),
 	load_world.
-
-:- dynamic bag/1.
-
-bag(lighter).
 
 :- dynamic thing/1.
 
 
 :- dynamic ything/2.
 
-ything(knife, startpoint).
 
 :- dynamic at/2.
 
 
 :- dynamic tangible/1.
 
-
-:- dynamic lifeline/1.
-
-lifeline([+, +, +, +, +, +, +, +, +, +, +, +, +, +, +, +, +, +, +, +]) :- !.
-
-:- dynamic lifeline_nr/1.
-
-lifeline_nr(20).
-
-:- dynamic taken/1.
-
-taken(knife).
 

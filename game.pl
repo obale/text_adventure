@@ -20,11 +20,14 @@
 :- use_module(library(lists)).
 :- dynamic lifeline/1.
 :- dynamic lifeline_nr/1.
+:- dynamic manna/1.
+:- dynamic manna_nr/1.
 :- dynamic alive/0.
 :- dynamic death/0.
 :- dynamic ything/2.
 :- dynamic bag/1.
 :- dynamic taken/1.
+:- dynamic way/3.
 :- dynamic location_print/1.
 
 start :-
@@ -69,19 +72,36 @@ status :-
         findall(X, bag(X), Bag),
         findall(X, thing(X), Things),
         findall(X, ything(X, Location2), YThings),
-        print('----------------'), nl,
+        print('**********************************************************************************'), nl,
         print('| LOCATION     | '), print(Location), print(' ('), print(Location2), print(')'), nl,
+        print('| TIME         | '), print_time,
         print('| LIFELINE     | '), print_lifeline(Lifeline), print(' ('), print(LifelineNr), print(')'), nl,
         print('| MANNA        | '), print_lifeline(Manna), print(' ('), print(MannaNr), print(')'), nl,
         print('| BAG          | '), print_list(Bag), nl,
         print('| ENVIRONMENT  | '), print_list(Things), print_list(YThings), nl,
-        print('----------------'), nl.
+        print('**********************************************************************************'), nl.
+
+print_time :-
+        get_time(X),
+        convert_time(X, _, Month, Day, Hour, Minute, Second, _),
+        print('Date: '),
+        print(Day), print('.'),        % Day
+        print(Month), print('.'),      % Month
+        print('500 '),                 % Year
+        print('Time: '),
+        print(Hour), print(':'),       % Hour
+        print(Minute), print(':'),     % Minute
+        print(Second),                 % Second
+        nl.
 
 bag :-
         alive,
         findall(X, bag(X), Bag),
         print('You have the following stuff in your bag: '), nl,
-        print_list(Bag).
+        print('**********************************************************************************'), nl,
+        print('| Your bag content: '), print_list(Bag), nl,
+        print('| ----------------- '), nl,
+        print('**********************************************************************************'), nl.
 
 leave :-
         halt.
@@ -173,7 +193,7 @@ print_lifeline([X|List]) :-
         print(X),
         print_lifeline(List).
 
-create_file(File) :-
+get_file(File) :-
         get_place(X),
         concat('places/', X, Tmpfile),
         concat(Tmpfile, '.pl', File).
@@ -195,12 +215,37 @@ clean :-
         abolish(way/3),
         remove_things.
 
+get_pl_file('saved/player.pl').
+
+save_player :-
+        get_pl_file(File),
+        telling(Old),
+        tell(File),
+        listing(bag/1),
+        listing(lifeline/1),
+        listing(lifeline_nr/1),
+        listing(manna/1),
+        listing(manna_nr/1),
+        told,
+        tell(Old).
+
+load_player :-
+        abolish(bag/1),
+        abolish(lifeline/1),
+        abolish(lifeline_nr/1),
+        abolish(manna/1),
+        abolish(manna_nr/1),
+        get_pl_file(File),
+        consult(File).
+
 save_world :-
+        save_player,
         get_place(X),
         concat('saved/', X, Tmpfile),
         concat(Tmpfile, '.pl', File),
         telling(Old),
         tell(File),
+        listing(taken/1),
         listing(location/2),
         listing(location_print/1),
         listing(position/1),
@@ -211,26 +256,20 @@ save_world :-
         listing(light/1),
         listing(use/1),
         listing(way/3),
-        listing(bag/1),
         listing(thing/1),
         listing(ything/2),
         listing(at/2),
         listing(tangible/1),
-        listing(lifeline/1),
-        listing(lifeline_nr/1),
-        listing(taken/1),
         told,
         tell(Old).
 
 load_world :-
+        load_player,
         get_place(X),
         clean,
-        abolish(bag/1),
         abolish(location_print/1),
         abolish(ything/2),
         abolish(tangible/1),
-        abolish(lifeline/1),
-        abolish(lifeline_nr/1),
         abolish(taken/1),
         concat('saved/', X, Tmpfile),
         concat(Tmpfile, '.pl', File),
@@ -239,14 +278,14 @@ load_world :-
         describe(Y).
 
 init_world :-
-        create_file(File),
+        get_file(File),
         clean,
         consult(File),
         update_location(X),
         describe(X), !.
 
 init_world :-
-        create_file(File),
+        get_file(File),
         print('The new world couldn\'t be loaded. Please check the file \''),
         print(File),
         print('\'.').
@@ -395,6 +434,16 @@ take(X) :-
 take(_) :-
         alive,
         print('There is nothing what you can take.'), nl, !, fail.
+
+drop(X) :-
+        alive,
+        bag(X),
+        taken(X), !,
+        position(Y),
+        retract(bag(X)),
+        asserta(ything(X, Y)),
+        retract(taken(X)),
+        print('You have droped the following thing to the environment: '), print(X).
 
 drop(X) :-
         alive,

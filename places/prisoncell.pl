@@ -31,6 +31,7 @@
  *************************************************************************/
 :- dynamic thing/1.
 :- dynamic at/2.
+:- dynamic tangible/1.
 :- dynamic location/2.
 :- dynamic position/1.
 :- dynamic describe/1.

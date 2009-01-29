@@ -49,7 +49,7 @@ describe(prisontract) :-
 position(startpoint_tract) :- !.
 
 way(startpoint_tract, south, irondoor) :-
-        open_way(irondoor), save_world, !,
+        open_way(irondoor), !, save_world,
         retract(location(_, _) :- !),
         asserta(location(prisoncell, 'The Prison Cell') :- !),
         load_world.
