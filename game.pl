@@ -1,5 +1,5 @@
 /*************************************************************************
- * Adventure Game - game.pl 
+ * Adventure Game - game.pl
  *
  * (C) 2008
  * Written by Alex Oberhauser <oberhauseralex@networld.to>
@@ -52,7 +52,7 @@ help :-
         print('use(something).        -> Use the object \'something\''), nl,
         print('inspect(something).    -> Inspect the object \'something\''), nl,
         print('take(something).       -> Add \'something\' to your bag'), nl,
-        print('take                   -> Take one thing at the time, if possible.'), nl,
+        print('take.                  -> Take one thing at the time, if possible.'), nl,
         print('drop(something).       -> Drop \'something\' from your bag'), nl,
         print('look.                  -> Look around you.'), nl,
         print('heal.                  -> Use a medical kit to improve your healthy.'), nl,
