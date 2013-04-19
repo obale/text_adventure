@@ -1,5 +1,5 @@
 /*************************************************************************
- * Adventure Game - prisontract.pl 
+ * Adventure Game - prisontract.pl
  *
  * (C) 2008
  * Written by Alex Oberhauser <oberhauseralex@networld.to>
@@ -44,7 +44,7 @@ location(prisontract, 'Old Prison Tract') :- !.
 describe(prisontract) :-
         light, position(startpoint_tract),
         print('You have left the prison cell. Now you are in the prison tract.'), nl,
-        print('The sun is shining trough a little whole in the wall.').
+        print('The sun is shining trough a little hole in the wall.').
 
 position(startpoint_tract) :- !.
 
